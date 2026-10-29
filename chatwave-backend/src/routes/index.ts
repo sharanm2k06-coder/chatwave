@@ -16,8 +16,12 @@ api.post('/auth/logout', authLimiter, wrap(auth.logout));
 
 api.use(requireAuth);
 api.get('/users/me', wrap(users.me));
+api.patch('/users/me', wrap(users.updateMe));
 api.get('/users/search', searchLimiter, wrap(users.search));
 api.get('/users/:id', wrap(users.get));
 api.get('/chats', wrap(chats.list));
 api.post('/chats/direct', wrap(chats.direct));
+api.post('/chats/group', wrap(chats.group));
+api.post('/chats/:id/members', wrap(chats.addMember));
+api.delete('/chats/:id/members', wrap(chats.removeMember));
 api.get('/chats/:id/messages', wrap(chats.messages));

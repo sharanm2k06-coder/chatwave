@@ -23,10 +23,38 @@ export async function getOrCreateDirect(a: string, b: string) {
     } else {
       id = (await c.query<{ id: string }>('SELECT id FROM conversations WHERE direct_key=$1', [key])).rows[0].id;
     }
+
     await c.query('COMMIT');
     return id;
   } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
 }
+
+export async function createGroup(ownerId: string, name: string, memberIds: string[]) {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    const id = (await c.query<{ id: string }>(
+      `INSERT INTO conversations (type, name, created_by) VALUES ('group',$1,$2) RETURNING id`,
+      [name, ownerId])).rows[0].id;
+    const ids = [...new Set([ownerId, ...memberIds])];
+    for (const userId of ids)
+      await c.query(
+        'INSERT INTO conversation_members (conversation_id,user_id,role) VALUES ($1,$2,$3)',
+        [id, userId, userId === ownerId ? 'admin' : 'member']);
+    await c.query('COMMIT');
+    return id;
+  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+}
+
+export const memberRole = async (convId: string, userId: string) =>
+  (await pool.query<{ role: string }>(
+    'SELECT role FROM conversation_members WHERE conversation_id=$1 AND user_id=$2', [convId, userId])).rows[0]?.role;
+
+export const addMember = (convId: string, userId: string) =>
+  pool.query('INSERT INTO conversation_members (conversation_id,user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [convId, userId]);
+
+export const removeMember = (convId: string, userId: string) =>
+  pool.query('DELETE FROM conversation_members WHERE conversation_id=$1 AND user_id=$2', [convId, userId]);
 
 export async function listFor(userId: string) {
   const { rows } = await pool.query(

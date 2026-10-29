@@ -46,7 +46,10 @@ class Repository(private val api: Api, private val tokens: TokenStore, private v
     }
 
     suspend fun search(q: String) = call { api.search(q).items }
+    suspend fun updateProfile(username: String, displayName: String) = call { api.updateMe(ProfileUpdateReq(username, displayName)) }
+    suspend fun me() = call { api.me() }
     suspend fun chats() = call { api.chats().items }
     suspend fun openDirect(userId: String) = call { api.direct(DirectReq(userId)) }
+    suspend fun createGroup(name: String, userIds: List<String>) = call { api.group(GroupCreateReq(name, userIds)) }
     suspend fun history(id: String, before: Long? = null) = call { api.history(id, before) }
 }

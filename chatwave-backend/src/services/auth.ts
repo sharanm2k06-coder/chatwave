@@ -21,6 +21,9 @@ export async function register(username: string, password: string, displayName: 
   let user;
   try { user = await users.insertUser(username, displayName, await argon2.hash(password, ARGON)); }
   catch (e: any) { if (e?.code === '23505') throw conflict('Username already taken'); throw e; }
+  await pool.query(
+    'INSERT INTO conversation_members (conversation_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+    ['00000000-0000-0000-0000-000000000001', user.id]);
   const { sessionId: _s, ...tokens } = await issue(user.id);
   return { user: users.publicUser(user), ...tokens };
 }

@@ -20,3 +20,12 @@ export const sendMessage = z.object({
 export const ids = z.object({ messageIds: z.array(z.string().uuid()).min(1).max(200) });
 export const readUpTo = z.object({ conversationId: z.string().uuid(), upToSeq: z.number().int().positive() });
 export const typing = z.object({ conversationId: z.string().uuid() });
+export const profileUpdate = z.object({
+  username: z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,30}$/),
+  displayName: z.string().trim().min(1).max(50),
+});
+export const groupCreate = z.object({
+  name: z.string().trim().min(1).max(80),
+  userIds: z.array(z.string().uuid()).max(100).default([]),
+});
+export const memberChange = z.object({ userId: z.string().uuid() });

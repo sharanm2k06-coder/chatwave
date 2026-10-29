@@ -10,6 +10,9 @@ import kotlinx.serialization.Serializable
 @Serializable data class DirectReq(val userId: String)
 @Serializable data class DirectResp(val id: String, val peer: User? = null)
 @Serializable data class UserList(val items: List<User>)
+@Serializable data class ProfileUpdateReq(val username: String, val displayName: String)
+@Serializable data class GroupCreateReq(val name: String, val userIds: List<String>)
+@Serializable data class GroupResp(val id: String, val type: String, val name: String)
 @Serializable data class LastMessage(val id: String, val seq: Long, val body: String, val senderId: String, val createdAt: String)
 @Serializable data class Chat(val id: String, val type: String, val name: String? = null, val peer: User? = null,
                               val lastMessage: LastMessage? = null, val unreadCount: Int = 0)

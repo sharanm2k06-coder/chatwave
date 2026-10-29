@@ -41,7 +41,18 @@ fun AppNav(c: AppContainer) {
             ChatListScreen(vm,
                 onOpen = { id, name -> nav.navigate("chat/$id/${URLEncoder.encode(name, "UTF-8")}") },
                 onSearch = { nav.navigate("search") },
+                onGlobal = { nav.navigate("chat/00000000-0000-0000-0000-000000000001/Global%20Chat") },
+                onGroup = { nav.navigate("group") },
+                onProfile = { nav.navigate("profile") },
                 onLogout = { scope.launch { c.socket.disconnect(); c.repository.logout(); nav.navigate("auth") { popUpTo("chats") { inclusive = true } } } })
+        }
+        composable("profile") {
+            val vm: ProfileViewModel = viewModel(factory = factory { ProfileViewModel(c.repository, null) })
+            ProfileScreen(vm, onBack = { nav.popBackStack() }, onLogout = { scope.launch { c.socket.disconnect(); c.repository.logout(); nav.navigate("auth") { popUpTo("profile") { inclusive = true } } } })
+        }
+        composable("group") {
+            val vm: GroupViewModel = viewModel(factory = factory { GroupViewModel(c.repository) })
+            GroupCreateScreen(vm, onBack = { nav.popBackStack() }, onOpen = { id, name -> nav.navigate("chat/$id/${URLEncoder.encode(name, "UTF-8")}") { popUpTo("group") { inclusive = true } } })
         }
         composable("search") {
             val vm: SearchViewModel = viewModel(factory = factory { SearchViewModel(c.repository) })

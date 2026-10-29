@@ -12,6 +12,11 @@ export const insertUser = async (username: string, displayName: string, hash: st
     'INSERT INTO users (username, display_name, password_hash) VALUES ($1,$2,$3) RETURNING *',
     [username, displayName, hash])).rows[0];
 
+export const updateProfile = async (id: string, username: string, displayName: string) =>
+  (await pool.query<UserRow>(
+    'UPDATE users SET username=$2, display_name=$3 WHERE id=$1 RETURNING *',
+    [id, username, displayName])).rows[0];
+
 export async function search(q: string, selfId: string, limit = 20) {
   const like = q.toLowerCase().replace(/[\\%_]/g, m => '\\' + m) + '%';
   return (await pool.query<UserRow>(

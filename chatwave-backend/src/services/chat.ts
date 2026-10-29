@@ -11,6 +11,23 @@ export async function startDirect(selfId: string, otherId: string) {
   return { id, type: 'direct', peer: users.publicUser(other) };
 }
 
+export async function startGroup(ownerId: string, name: string, memberIds: string[]) {
+  const ids = [...new Set(memberIds)];
+  for (const id of ids) if (!(await users.findById(id))) throw notFound('Group member not found');
+  return { id: await chats.createGroup(ownerId, name, ids), type: 'group', name };
+}
+
+export async function changeMember(actorId: string, convId: string, memberId: string, add: boolean) {
+  if ((await chats.memberRole(convId, actorId)) !== 'admin') throw forbidden('Only group admins can manage members');
+  if (add) {
+    if (!(await users.findById(memberId))) throw notFound('User not found');
+    await chats.addMember(convId, memberId);
+  } else {
+    if (actorId === memberId) throw badRequest('Group admins cannot remove themselves');
+    await chats.removeMember(convId, memberId);
+  }
+}
+
 export async function assertMember(convId: string, userId: string) {
   if (!(await chats.isMember(convId, userId))) throw forbidden('Not a member of this conversation');
 }
