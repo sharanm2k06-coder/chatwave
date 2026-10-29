@@ -17,8 +17,8 @@ android {
     }
     buildTypes {
         debug {
-            // 10.0.2.2 = host machine from the Android emulator. For a physical phone use your PC's LAN IP.
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/\"")
+            val prod = (project.findProperty("CHATWAVE_PROD_URL") as String?) ?: "https://chatwave-backend-z704.onrender.com/"
+            buildConfigField("String", "BASE_URL", "\"$prod\"")
         }
         release {
             isMinifyEnabled = true
