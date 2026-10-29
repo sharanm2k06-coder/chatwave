@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.socketio) { exclude(group = "org.json", module = "json") }
+    implementation(libs.webrtc)
     implementation(libs.serialization.json)
     implementation(libs.coroutines.android)
     testImplementation(libs.junit)

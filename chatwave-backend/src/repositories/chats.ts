@@ -3,6 +3,9 @@ import { pool } from '../database/pool';
 export const isMember = async (convId: string, userId: string) =>
   (await pool.query('SELECT 1 FROM conversation_members WHERE conversation_id=$1 AND user_id=$2', [convId, userId])).rowCount === 1;
 
+export const isDirectConversation = async (convId: string) =>
+  (await pool.query("SELECT 1 FROM conversations WHERE id=$1 AND type='direct'", [convId])).rowCount === 1;
+
 export const memberIds = async (convId: string) =>
   (await pool.query<{ user_id: string }>('SELECT user_id FROM conversation_members WHERE conversation_id=$1', [convId])).rows.map(r => r.user_id);
 

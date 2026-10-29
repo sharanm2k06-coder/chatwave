@@ -16,6 +16,8 @@ import com.chatwave.app.feature.auth.AuthScreen
 import com.chatwave.app.feature.auth.AuthViewModel
 import com.chatwave.app.feature.chat.ChatScreen
 import com.chatwave.app.feature.chat.ChatViewModel
+import com.chatwave.app.feature.call.CallScreen
+import com.chatwave.app.feature.call.CallViewModel
 import com.chatwave.app.feature.home.*
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
@@ -39,7 +41,7 @@ fun AppNav(c: AppContainer) {
         composable("chats") {
             val vm: ChatListViewModel = viewModel(factory = factory { ChatListViewModel(c.repository, c.socket) })
             ChatListScreen(vm,
-                onOpen = { id, name -> nav.navigate("chat/$id/${URLEncoder.encode(name, "UTF-8")}") },
+                onOpen = { id, name, peer -> nav.navigate("chat/$id/${URLEncoder.encode(name, "UTF-8")}${peer?.let { "?peer=$it" } ?: ""}") },
                 onSearch = { nav.navigate("search") },
                 onGlobal = { nav.navigate("chat/00000000-0000-0000-0000-000000000001/Global%20Chat") },
                 onGroup = { nav.navigate("group") },
@@ -59,11 +61,18 @@ fun AppNav(c: AppContainer) {
             SearchScreen(vm, onBack = { nav.popBackStack() }, onOpen = { id, name ->
                 nav.popBackStack(); nav.navigate("chat/$id/${URLEncoder.encode(name, "UTF-8")}") })
         }
-        composable("chat/{id}/{name}", arguments = listOf(navArgument("id") { type = NavType.StringType }, navArgument("name") { type = NavType.StringType })) { e ->
+        composable("chat/{id}/{name}?peer={peer}", arguments = listOf(navArgument("id") { type = NavType.StringType }, navArgument("name") { type = NavType.StringType }, navArgument("peer") { type = NavType.StringType; nullable = true; defaultValue = null })) { e ->
             val id = e.arguments!!.getString("id")!!
             val name = URLDecoder.decode(e.arguments!!.getString("name")!!, "UTF-8")
+            val peer = e.arguments!!.getString("peer")
             val vm: ChatViewModel = viewModel(key = id, factory = factory { ChatViewModel(id, c.repository, c.socket, c.tokens.userId) })
-            ChatScreen(name, vm) { nav.popBackStack() }
+            ChatScreen(name, vm, { nav.popBackStack() }, peer?.let { { nav.navigate("call/$id/$it") } })
+        }
+        composable("call/{conversationId}/{peerId}", arguments = listOf(navArgument("conversationId") { type = NavType.StringType }, navArgument("peerId") { type = NavType.StringType })) { e ->
+            val conversationId = e.arguments!!.getString("conversationId")!!
+            val peerId = e.arguments!!.getString("peerId")!!
+            val vm: CallViewModel = viewModel(factory = factory { CallViewModel(conversationId, peerId, c.socket, c.context) })
+            CallScreen(vm) { nav.popBackStack() }
         }
     }
 }

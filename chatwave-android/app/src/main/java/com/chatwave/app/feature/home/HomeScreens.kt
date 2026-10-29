@@ -22,7 +22,7 @@ import com.chatwave.app.data.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatListScreen(vm: ChatListViewModel, onOpen: (String, String) -> Unit, onSearch: () -> Unit, onGlobal: () -> Unit, onGroup: () -> Unit, onProfile: () -> Unit, onLogout: () -> Unit) {
+fun ChatListScreen(vm: ChatListViewModel, onOpen: (String, String, String?) -> Unit, onSearch: () -> Unit, onGlobal: () -> Unit, onGroup: () -> Unit, onProfile: () -> Unit, onLogout: () -> Unit) {
     val s by vm.state.collectAsStateWithLifecycle()
     Scaffold(
         topBar = { TopAppBar(title = { Text("ChatWave") }, actions = {
@@ -97,13 +97,13 @@ fun GroupCreateScreen(vm: GroupViewModel, onBack: () -> Unit, onOpen: (String, S
 }
 
 @Composable
-private fun ChatRow(c: Chat, onOpen: (String, String) -> Unit) {
+private fun ChatRow(c: Chat, onOpen: (String, String, String?) -> Unit) {
     val title = c.peer?.displayName ?: c.name ?: "Conversation"
     ListItem(
         headlineContent = { Text(title, maxLines = 1) },
         supportingContent = { Text(c.lastMessage?.body ?: "No messages yet", maxLines = 1, overflow = TextOverflow.Ellipsis) },
         trailingContent = { if (c.unreadCount > 0) Badge { Text(c.unreadCount.toString()) } },
-        modifier = Modifier.clickable { onOpen(c.id, title) }.heightIn(min = 56.dp),
+        modifier = Modifier.clickable { onOpen(c.id, title, c.peer?.id) }.heightIn(min = 56.dp),
     )
 }
 

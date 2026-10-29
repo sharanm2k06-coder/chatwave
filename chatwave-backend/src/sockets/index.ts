@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Server as HttpServer } from 'node:http';
 import { Server, Socket } from 'socket.io';
 import { env } from '../config/env';
@@ -9,6 +10,7 @@ import * as messages from '../repositories/messages';
 import { logger } from '../utils/logger';
 
 type Ack = (r: unknown) => void;
+type CallSession = { conversationId: string; participants: readonly [string, string] };
 const userRoom = (id: string) => `user:${id}`;
 
 export function attachSockets(http: HttpServer) {
@@ -18,6 +20,7 @@ export function attachSockets(http: HttpServer) {
     maxHttpBufferSize: 64 * 1024,
   });
   const connections = new Map<string, number>(); // userId -> live connection count
+  const calls = new Map<string, CallSession>();
 
   io.use(async (socket, next) => {
     try {
@@ -55,6 +58,39 @@ export function attachSockets(http: HttpServer) {
       }
       // ack is sent only after the DB transaction committed
       return { message, duplicate };
+    }));
+
+    socket.on('call:invite', guard(socket, v.callInvite, undefined, async (userId, p) => {
+      if (!(await chats.isDirectConversation(p.conversationId)))
+        throw Object.assign(new Error('Audio calls are only available in direct chats'), { status: 400, code: 'INVALID_CONVERSATION' });
+      await chat.assertMember(p.conversationId, userId);
+      await chat.assertMember(p.conversationId, p.peerUserId);
+      const callId = crypto.randomUUID();
+      calls.set(callId, { conversationId: p.conversationId, participants: [userId, p.peerUserId] });
+      setTimeout(() => calls.delete(callId), 5 * 60 * 1000).unref();
+      io.to(userRoom(p.peerUserId)).emit('call:incoming', { callId, conversationId: p.conversationId, fromUserId: userId });
+      return { callId };
+    }));
+    for (const [event, schema, outgoing] of [
+      ['call:offer', v.callSignal, 'call:offer'],
+      ['call:answer', v.callSignal, 'call:answer'],
+      ['call:ice', v.callSignal, 'call:ice'],
+    ] as const) {
+      socket.on(event, guard(socket, schema, undefined, async (userId, p) => {
+        const call = calls.get(p.callId);
+        if (!call || !call.participants.includes(userId) || !call.participants.includes(p.peerUserId))
+          throw Object.assign(new Error('Invalid call'), { status: 403, code: 'CALL_NOT_ALLOWED' });
+        io.to(userRoom(p.peerUserId)).emit(outgoing, { callId: p.callId, fromUserId: userId, data: p.data });
+        return {};
+      }));
+    }
+    socket.on('call:end', guard(socket, v.callEnd, undefined, async (userId, p) => {
+      const call = calls.get(p.callId);
+      if (!call || !call.participants.includes(userId) || !call.participants.includes(p.peerUserId))
+        throw Object.assign(new Error('Invalid call'), { status: 403, code: 'CALL_NOT_ALLOWED' });
+      io.to(userRoom(p.peerUserId)).emit('call:ended', { callId: p.callId, fromUserId: userId });
+      calls.delete(p.callId);
+      return {};
     }));
 
     socket.on('message:delivered', guard(socket, v.ids, undefined, async (userId, p) => {

@@ -20,6 +20,9 @@ export const sendMessage = z.object({
 export const ids = z.object({ messageIds: z.array(z.string().uuid()).min(1).max(200) });
 export const readUpTo = z.object({ conversationId: z.string().uuid(), upToSeq: z.number().int().positive() });
 export const typing = z.object({ conversationId: z.string().uuid() });
+export const callInvite = z.object({ conversationId: z.string().uuid(), peerUserId: z.string().uuid() });
+export const callSignal = z.object({ callId: z.string().uuid(), peerUserId: z.string().uuid(), data: z.record(z.unknown()).default({}) });
+export const callEnd = z.object({ callId: z.string().uuid(), peerUserId: z.string().uuid() });
 export const profileUpdate = z.object({
   username: z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,30}$/),
   displayName: z.string().trim().min(1).max(50),

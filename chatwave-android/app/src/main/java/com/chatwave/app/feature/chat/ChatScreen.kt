@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(title: String, vm: ChatViewModel, onBack: () -> Unit) {
+fun ChatScreen(title: String, vm: ChatViewModel, onBack: () -> Unit, onCall: (() -> Unit)? = null) {
     val s by vm.state.collectAsStateWithLifecycle()
     val list = rememberLazyListState()
     var draft by remember { mutableStateOf("") }
@@ -27,6 +28,7 @@ fun ChatScreen(title: String, vm: ChatViewModel, onBack: () -> Unit) {
     Scaffold(
         topBar = { TopAppBar(
             title = { Column { Text(title); if (s.peerTyping) Text("typing…", style = MaterialTheme.typography.labelSmall) } },
+            actions = { if (onCall != null) IconButton(onClick = onCall) { Icon(Icons.Default.Call, "Call") } },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }) },
         bottomBar = {
             Row(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {

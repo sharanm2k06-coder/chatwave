@@ -15,6 +15,7 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
 class AppContainer(app: Application) {
+    val context = app.applicationContext
     val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
     val tokens = TokenStore(app)
     lateinit var repository: Repository
