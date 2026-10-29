@@ -1,0 +1,6 @@
+-keepattributes *Annotation*, InnerClasses
+-keep,includedescriptorclasses class com.chatwave.app.data.**$$serializer { *; }
+-keepclassmembers class com.chatwave.app.data.** { *** Companion; }
+-keepclasseswithmembers class com.chatwave.app.data.** { kotlinx.serialization.KSerializer serializer(...); }
+-dontwarn okhttp3.**
+-dontwarn org.slf4j.**

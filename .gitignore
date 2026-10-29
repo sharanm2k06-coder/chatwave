@@ -1,0 +1,20 @@
+# Backend dependencies and generated output
+chatwave-backend/node_modules/
+chatwave-backend/dist/
+chatwave-backend/.env
+
+# Android/Gradle generated files and local credentials
+chatwave-android/.gradle/
+chatwave-android/local.properties
+chatwave-android/.idea/
+chatwave-android/**/build/
+chatwave-android/captures/
+chatwave-android/*.jks
+chatwave-android/*.keystore
+chatwave-android/google-services.json
+
+# IDE and OS files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
