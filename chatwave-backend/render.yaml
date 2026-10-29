@@ -1,6 +1,7 @@
 databases:
   - name: chatwave-db
     plan: free
+    region: oregon
     databaseName: chatwave
     user: chatwave
 
@@ -9,7 +10,7 @@ services:
     name: chatwave-backend
     runtime: node
     plan: free
-    region: singapore
+    region: oregon
     rootDir: chatwave-backend
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
